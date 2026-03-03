@@ -59,7 +59,7 @@ export default function DecisionJournalApp() {
 
   const login = async (username, password) => {
     try {
-      const res = await fetch(`${API_BASE}/auth/login/`, {
+      const res = await fetch(`${API_BASE}/api/auth/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -97,7 +97,7 @@ export default function DecisionJournalApp() {
 
   const register = async (username, email, password) => {
     try {
-      const res = await fetch(`${API_BASE}/auth/register/`, {
+      const res = await fetch(`${API_BASE}/api/auth/register/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
@@ -156,7 +156,7 @@ export default function DecisionJournalApp() {
           return
         }
 
-        const res = await fetch(`${API_BASE}/decisions/`, {
+        const res = await fetch(`${API_BASE}/api/decisions/`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (!res.ok) {
