@@ -15,10 +15,10 @@ export default function ProfileSection({
   const outcomes = decisions.filter((d) => d.outcome)
   const avgStress =
     outcomes.reduce((sum, d) => sum + (d.outcome.stress || 0), 0) /
-      Math.max(outcomes.length, 1) || 0
+    Math.max(outcomes.length, 1) || 0
   const avgHappiness =
     outcomes.reduce((sum, d) => sum + (d.outcome.happiness || 0), 0) /
-      Math.max(outcomes.length, 1) || 0
+    Math.max(outcomes.length, 1) || 0
 
   const panelBg = darkMode ? "bg-gray-900" : "bg-[#FFF9EF]"
 
@@ -33,32 +33,32 @@ export default function ProfileSection({
   }, [user])
 
   const handleSaveProfile = async () => {
-  try {
-    const token = window.localStorage.getItem("token") || ""
-    const res = await fetch("http://localhost:8000/api/me/update/", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        username: nameInput,
-        email: emailInput,
-      }),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      console.error("Profile update failed", data)
-      return
+    try {
+      const token = window.localStorage.getItem("token") || ""
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/me/update/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          username: nameInput,
+          email: emailInput,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        console.error("Profile update failed", data)
+        return
+      }
+      if (onProfileUpdated) {
+        onProfileUpdated(data)
+      }
+      setEditing(false)
+    } catch (err) {
+      console.error("Profile update error", err)
     }
-    if (onProfileUpdated) {
-      onProfileUpdated(data)
-    }
-    setEditing(false)
-  } catch (err) {
-    console.error("Profile update error", err)
   }
-}
 
   // --- end editable profile state ---
 
