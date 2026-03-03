@@ -5,10 +5,8 @@ import Toast from "./Toast"
 import LandingPage from "./LandingPage"
 import AuthPage from "./AuthPage"
 
-// Use Vite environment variable for API URL; ensure we don't double up on /api
-const API_BASE = import.meta.env.VITE_API_URL?.endsWith('/api')
-  ? import.meta.env.VITE_API_URL
-  : `${import.meta.env.VITE_API_URL}/api`;
+// Use Vite environment variable for API host
+const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 
 export default function DecisionJournalApp() {
@@ -21,7 +19,7 @@ export default function DecisionJournalApp() {
   useEffect(() => {
     const fetchApiRoot = async () => {
       try {
-        const res = await fetch(`${API_BASE}/`)
+        const res = await fetch(`${API_BASE}/api/`)
         const data = await res.json()
         console.log("API Root Response:", data)
       } catch (err) {
@@ -145,7 +143,7 @@ export default function DecisionJournalApp() {
 
     const fetchUserAndDecisions = async () => {
       try {
-        const meRes = await fetch(`${API_BASE}/me/`, {
+        const meRes = await fetch(`${API_BASE}/api/me/`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (meRes.ok) {
@@ -188,7 +186,7 @@ export default function DecisionJournalApp() {
       return
     }
     try {
-      const res = await fetch(`${API_BASE}/decisions/`, {
+      const res = await fetch(`${API_BASE}/api/decisions/`, {
         method: "POST",
         headers: authHeaders,
         body: JSON.stringify(newDecision),
@@ -219,7 +217,7 @@ export default function DecisionJournalApp() {
 
   const updateOutcome = async (id, outcome) => {
     try {
-      const res = await fetch(`${API_BASE}/decisions/${id}/`, {
+      const res = await fetch(`${API_BASE}/api/decisions/${id}/`, {
         method: "PATCH",
         headers: authHeaders,
         body: JSON.stringify({ outcome }),
@@ -242,7 +240,7 @@ export default function DecisionJournalApp() {
 
   const deleteDecision = async (id) => {
     try {
-      const res = await fetch(`${API_BASE}/decisions/${id}/`, {
+      const res = await fetch(`${API_BASE}/api/decisions/${id}/`, {
         method: "DELETE",
         headers: authHeaders,
       })

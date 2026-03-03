@@ -35,10 +35,7 @@ export default function ProfileSection({
   const handleSaveProfile = async () => {
     try {
       const token = window.localStorage.getItem("token") || ""
-      const baseUrl = import.meta.env.VITE_API_URL?.endsWith('/api')
-        ? import.meta.env.VITE_API_URL
-        : `${import.meta.env.VITE_API_URL}/api`;
-      const res = await fetch(`${baseUrl}/me/update/`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/me/update/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
