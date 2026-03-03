@@ -5,8 +5,10 @@ import Toast from "./Toast"
 import LandingPage from "./LandingPage"
 import AuthPage from "./AuthPage"
 
-// Use Vite environment variable for API URL
-const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
+// Use Vite environment variable for API URL; ensure we don't double up on /api
+const API_BASE = import.meta.env.VITE_API_URL?.endsWith('/api')
+  ? import.meta.env.VITE_API_URL
+  : `${import.meta.env.VITE_API_URL}/api`;
 
 
 export default function DecisionJournalApp() {
