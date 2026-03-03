@@ -16,6 +16,13 @@ from backend.mongo import (
 )
 from .serializers import UserRegistrationSerializer, UserLoginSerializer
 
+# ─── Root View ─────────────────────────────────────────────────────────────
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def api_root(request):
+    return Response({"message": "Welcome to DecisionIQ API", "status": "running"})
+
 # ─── Auth Views ─────────────────────────────────────────────────────────────
 
 class RegisterView(APIView):

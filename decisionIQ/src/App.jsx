@@ -5,7 +5,12 @@ import Toast from "./Toast"
 import LandingPage from "./LandingPage"
 import AuthPage from "./AuthPage"
 
-const API_BASE = import.meta.env.VITE_API_URL
+// Shim process.env for Vite to support requested syntax
+window.process = window.process || {};
+window.process.env = window.process.env || {};
+window.process.env.REACT_APP_API_URL = import.meta.env.VITE_REACT_APP_API_URL || import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || "http://127.0.0.1:8000";
+
+const API_BASE = `${process.env.REACT_APP_API_URL}/api`;
 
 
 export default function DecisionJournalApp() {
@@ -14,6 +19,19 @@ export default function DecisionJournalApp() {
   const [currentPage, setCurrentPage] = useState(() =>
     localStorage.getItem("token") ? "dashboard" : "landing"
   )
+
+  useEffect(() => {
+    const fetchApiRoot = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/`)
+        const data = await res.json()
+        console.log("API Root Response:", data)
+      } catch (err) {
+        console.error("Failed to fetch API root:", err)
+      }
+    }
+    fetchApiRoot()
+  }, [])
 
   const [toast, setToast] = useState(null)
   const [token, setToken] = useState(() => localStorage.getItem("token"))

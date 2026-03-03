@@ -7,9 +7,11 @@ from .views import (
     update_me,
     DecisionListCreate,
     DecisionDetail,
+    api_root,
 )
 
 urlpatterns = [
+    path("", api_root, name="api_root"),
     path("auth/register/", RegisterView.as_view(), name="register"),
     path("auth/login/", LoginView.as_view(), name="login"),
     path("me/", me, name="me"),
