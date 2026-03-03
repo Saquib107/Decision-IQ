@@ -68,11 +68,10 @@ STATIC_URL = "static/"
 
 # CORS
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
+    "https://decision-iq-three.vercel.app/",
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 # DRF — custom MongoDB JWT authentication
 REST_FRAMEWORK = {
