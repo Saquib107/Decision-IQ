@@ -50,7 +50,23 @@ export default function DecisionJournalApp() {
     framework: "none",
   });
 
+  const getInitialComparison = () => ({
+    title: "",
+    factors: [
+      { id: 'f1', name: 'Price', weight: 3 },
+      { id: 'f2', name: 'Outcome Quality', weight: 5 },
+      { id: 'f3', name: 'Effort Required', weight: 2 },
+    ],
+    options: [
+      { id: 'o1', name: 'Option A', ratings: { 'f1': 5, 'f2': 5, 'f3': 5 } },
+      { id: 'o2', name: 'Option B', ratings: { 'f1': 5, 'f2': 5, 'f3': 5 } },
+    ],
+    reflectionDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    category: "Personal",
+  });
+
   const [newDecision, setNewDecision] = useState(getInitialDecision())
+  const [activeComparison, setActiveComparison] = useState(getInitialComparison())
   const [searchQuery, setSearchQuery] = useState("")
   const [editingOutcome, setEditingOutcome] = useState(null)
 
@@ -190,27 +206,58 @@ export default function DecisionJournalApp() {
   // ---------- DECISIONS CRUD ----------
 
   const saveDecision = async () => {
-    if (!newDecision.situation || !newDecision.decision) {
-      showToast("Please fill in situation and decision", "error")
+    let payload = { ...newDecision };
+
+    if (newDecision.isComparison) {
+       // Find the winner
+       const factors = activeComparison.factors;
+       const options = activeComparison.options;
+       const totalPossibleWeight = factors.reduce((sum, f) => sum + (f.weight || 1), 0) * 10;
+       
+       const results = options.map(opt => {
+         let rawScore = 0;
+         factors.forEach(f => {
+           rawScore += (opt.ratings[f.id] || 0) * (f.weight || 1);
+         });
+         return { ...opt, score: Math.round((rawScore / totalPossibleWeight) * 100) || 0 };
+       }).sort((a,b) => b.score - a.score);
+
+       const winner = results[0];
+       payload = {
+          ...payload,
+          situation: activeComparison.title,
+          decision: winner.name,
+          reasoning: `Intelligence Report Score: ${winner.score}/100. Compared with: ${results.slice(1).map(r => `${r.name} (${r.score})`).join(', ')}. Analyzed using ${factors.length} weighted factors.`,
+          category: activeComparison.category,
+          reflectionDate: activeComparison.reflectionDate
+       };
+    }
+
+    if (!payload.situation || !payload.decision) {
+      showToast("Please fill in the matrix and analyze before saving", "error")
       return
     }
+
     try {
       const res = await fetch(`${API_BASE}/api/decisions/`, {
         method: "POST",
         headers: authHeaders,
-        body: JSON.stringify(newDecision),
+        body: JSON.stringify(payload),
       })
       const text = await res.text()
-      console.log("Save decision status:", res.status, "body:", text)
       if (!res.ok) {
-        showToast("Failed to save decision", "error")
+        showToast("Failed to save to vault", "error")
         return
       }
       const created = JSON.parse(text)
       setDecisions((prev) => [created, ...prev])
       setNewDecision(getInitialDecision())
-      showToast("Decision saved successfully!")
-      setCurrentPage("dashboard")
+      setActiveComparison(getInitialComparison())
+      showToast("Intelligence report saved to vault!")
+      // After saving, we reset the section to home
+      // Note: Dashboard component tracks activeSection internally, 
+      // but App can force a reset by setting initial section state 
+      // if Dashboard had a prop for it.
     } catch (err) {
       console.error("Save decision error", err)
       showToast("Failed to save decision", "error")
@@ -274,6 +321,22 @@ export default function DecisionJournalApp() {
       Math.max(decisions.length, 1)) *
     100
 
+  const useTemplate = (template) => {
+    setActiveComparison({
+       ...getInitialComparison(),
+       title: template.title,
+       factors: template.factors,
+       options: template.options.map(o => ({...o, id: Math.random().toString(36).substr(2, 9)}))
+    });
+    setNewDecision(prev => ({...prev, isComparison: true}));
+    // We stay in dashboard but the section changes
+  };
+
+  const startBlankComparison = () => {
+    setActiveComparison(getInitialComparison());
+    setNewDecision(prev => ({...prev, isComparison: true}));
+  };
+
   const goToAuth = () => setCurrentPage("auth")
   const goBackToLanding = () => setCurrentPage("landing")
 
@@ -307,6 +370,8 @@ export default function DecisionJournalApp() {
           decisions={decisions}
           newDecision={newDecision}
           setNewDecision={setNewDecision}
+          activeComparison={activeComparison}
+          setActiveComparison={setActiveComparison}
           saveDecision={saveDecision}
           deleteDecision={deleteDecision}
           updateOutcome={updateOutcome}
@@ -319,6 +384,8 @@ export default function DecisionJournalApp() {
           onLogout={logout}
           user={user}
           onProfileUpdated={handleProfileUpdated}
+          onUseTemplate={useTemplate}
+          onStartBlank={startBlankComparison}
         />
       )}
 

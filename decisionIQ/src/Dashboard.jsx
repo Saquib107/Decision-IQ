@@ -39,10 +39,24 @@ export default function Dashboard({
   onLogout,
   user,
   onProfileUpdated,
+  activeComparison,
+  setActiveComparison,
+  onUseTemplate,
+  onStartBlank
 }) {
   const [activeSection, setActiveSection] = useState("home")
   const [profileOpen, setProfileOpen] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+
+  const handleUseTemplate = (tpl) => {
+    onUseTemplate(tpl);
+    setActiveSection("log");
+  };
+
+  const handleStartBlank = () => {
+    onStartBlank();
+    setActiveSection("log");
+  };
   
 
   const navItems = [
@@ -227,6 +241,8 @@ export default function Dashboard({
                 decisions={decisions}
                 successRate={successRate}
                 showToast={showToast}
+                onUseTemplate={handleUseTemplate}
+                onStartBlank={handleStartBlank}
               />
             </motion.div>
           )}
@@ -243,6 +259,8 @@ export default function Dashboard({
                 darkMode={darkMode}
                 newDecision={newDecision}
                 setNewDecision={setNewDecision}
+                activeComparison={activeComparison}
+                setActiveComparison={setActiveComparison}
                 saveDecision={saveDecision}
               />
             </motion.div>

@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, Legend, AreaChart, Area
+  PieChart, Pie, Cell, Legend, AreaChart, Area,
+  BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartsRadar
 } from 'recharts';
 
 export function SuccessTrendChart({ decisions, darkMode }) {
@@ -88,6 +89,83 @@ export function CategoryPieChart({ decisions, darkMode }) {
           />
           <Legend iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
         </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+export function ComparisonBarChart({ data, darkMode }) {
+  return (
+    <div className="h-[300px] w-full mt-4">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? '#374151' : '#f3f4f6'} />
+          <XAxis 
+            dataKey="name" 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{fontSize: 10, fill: darkMode ? '#9ca3af' : '#6b7280'}} 
+          />
+          <YAxis 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{fontSize: 10, fill: darkMode ? '#9ca3af' : '#6b7280'}} 
+            unit="%"
+          />
+          <Tooltip 
+             cursor={{fill: 'transparent'}}
+             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: darkMode ? '#1f2937' : '#fff' }}
+          />
+          <Bar dataKey="score" radius={[10, 10, 0, 0]}>
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={index === 0 ? '#22c55e' : '#f97316'} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+export function FactorRadarChart({ factors, options, darkMode }) {
+  const data = factors.map(f => {
+    const d = { subject: f.name, fullMark: 10 };
+    options.slice(0, 2).forEach(opt => {
+      d[opt.name] = opt.ratings[f.id] || 0;
+    });
+    return d;
+  });
+
+  return (
+    <div className="h-[300px] w-full mt-4">
+      <ResponsiveContainer width="100%" height="100%">
+        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+          <PolarGrid stroke={darkMode ? '#374151' : '#e5e7eb'} />
+          <PolarAngleAxis 
+            dataKey="subject" 
+            tick={{fontSize: 10, fill: darkMode ? '#9ca3af' : '#6b7280'}}
+          />
+          <PolarRadiusAxis 
+            angle={30} 
+            domain={[0, 10]} 
+            tick={false} 
+            axisLine={false} 
+          />
+          {options.slice(0, 2).map((opt, i) => (
+            <RechartsRadar
+              key={opt.id}
+              name={opt.name}
+              dataKey={opt.name}
+              stroke={i === 0 ? '#22c55e' : '#f97316'}
+              fill={i === 0 ? '#22c55e' : '#f97316'}
+              fillOpacity={0.4}
+            />
+          ))}
+          <Legend wrapperStyle={{ fontSize: '10px' }} />
+          <Tooltip 
+             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: darkMode ? '#1f2937' : '#fff' }}
+          />
+        </RadarChart>
       </ResponsiveContainer>
     </div>
   );

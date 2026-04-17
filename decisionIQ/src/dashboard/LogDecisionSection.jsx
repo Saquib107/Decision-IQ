@@ -1,417 +1,299 @@
 // src/dashboard/LogDecisionSection.jsx
-import React, { useState } from "react"
-import { Plus, Trash2, Shield, AlertTriangle, Scale, Target, Calendar } from "lucide-react"
-
-const constraintOptions = {
-  time: [
-    { value: "low", label: "Low pressure", icon: "🟢" },
-    { value: "medium", label: "Some urgency", icon: "🟡" },
-    { value: "high", label: "Time sensitive", icon: "🔴" },
-  ],
-  risk: [
-    { value: "low", label: "Low risk", icon: "🛡️" },
-    { value: "medium", label: "Moderate risk", icon: "⚖️" },
-    { value: "high", label: "High risk", icon: "⚠️" },
-  ],
-  emotion: [
-    { value: "calm", label: "Calm", icon: "😌" },
-    { value: "neutral", label: "Neutral", icon: "😐" },
-    { value: "anxious", label: "Anxious", icon: "😰" },
-    { value: "excited", label: "Excited", icon: "😊" },
-  ],
-}
-
-const categoryOptions = ["Career", "Health", "Finance", "Social", "Personal", "Other"]
+import React, { useState, useMemo } from "react"
+import { Plus, Trash2, Shield, Target, Calendar, Info, Zap, ChevronRight, BarChart3, Radar } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { ComparisonBarChart, FactorRadarChart } from "./AnalyticsCharts"
 
 export default function LogDecisionSection({
-  darkMode,
-  newDecision,
-  setNewDecision,
-  saveDecision,
+   darkMode,
+   activeComparison,
+   setActiveComparison,
+   saveDecision,
 }) {
-  const cardBase = `rounded-2xl border ${
-    darkMode ? "bg-gray-900/60 border-gray-800" : "bg-white border-orange-100"
-  }`
+   const [analyzing, setAnalyzing] = useState(false);
+   const [showResults, setShowResults] = useState(false);
 
-  const labelBase = `text-sm font-semibold ${
-    darkMode ? "text-gray-200" : "text-gray-800"
-  }`
+   // Scoring Logic
+   const getResults = useMemo(() => {
+      const { factors, options } = activeComparison;
+      const totalPossibleWeight = factors.reduce((sum, f) => sum + (f.weight || 1), 0) * 10;
 
-  const sectionTitle = `text-base font-semibold ${
-    darkMode ? "text-gray-100" : "text-gray-900"
-  }`
+      return options.map(opt => {
+         let rawScore = 0;
+         factors.forEach(f => {
+            rawScore += (opt.ratings[f.id] || 0) * (f.weight || 1);
+         });
+         const finalScore = Math.round((rawScore / totalPossibleWeight) * 100) || 0;
+         return { ...opt, score: finalScore };
+      }).sort((a, b) => b.score - a.score);
+   }, [activeComparison]);
 
-  const inputBase = `w-full px-4 py-3 rounded-xl ${
-    darkMode ? "bg-gray-900 text-white" : "bg-orange-50"
-  } border border-transparent focus:border-orange-400 outline-none text-sm`
+   const addOption = () => {
+      const id = Math.random().toString(36).substr(2, 9);
+      const newOpt = { id, name: `Option ${activeComparison.options.length + 1}`, ratings: {} };
+      activeComparison.factors.forEach(f => newOpt.ratings[f.id] = 5);
+      setActiveComparison({ ...activeComparison, options: [...activeComparison.options, newOpt] });
+   };
 
-  const addProCon = (type) => {
-    const fresh = { id: Date.now(), text: "", weight: 3, type }
-    setNewDecision({ ...newDecision, prosCons: [...newDecision.prosCons, fresh] })
-  }
+   const removeOption = (id) => {
+      if (activeComparison.options.length <= 1) return;
+      setActiveComparison({ ...activeComparison, options: activeComparison.options.filter(o => o.id !== id) });
+   };
 
-  const updateProCon = (id, field, value) => {
-    setNewDecision({
-      ...newDecision,
-      prosCons: newDecision.prosCons.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
-      ),
-    })
-  }
+   const addFactor = () => {
+      const id = Math.random().toString(36).substr(2, 9);
+      const newFactor = { id, name: 'New Factor', weight: 3 };
+      setActiveComparison({
+         ...activeComparison,
+         factors: [...activeComparison.factors, newFactor],
+         options: activeComparison.options.map(o => ({ ...o, ratings: { ...o.ratings, [id]: 5 } }))
+      });
+   };
 
-  const removeProCon = (id) => {
-    setNewDecision({
-      ...newDecision,
-      prosCons: newDecision.prosCons.filter((item) => item.id !== id),
-    })
-  }
+   const removeFactor = (id) => {
+      if (activeComparison.factors.length <= 1) return;
+      setActiveComparison({
+         ...activeComparison,
+         factors: activeComparison.factors.filter(f => f.id !== id)
+      });
+   };
 
-  return (
-    <div className="w-full space-y-6 pb-20">
-      <h1
-        className={`text-2xl font-bold mb-2 ${
-          darkMode ? "text-gray-100" : "text-gray-900"
-        }`}
-      >
-        Log Decision
-      </h1>
+   const updateRating = (optId, factorId, val) => {
+      setActiveComparison({
+         ...activeComparison,
+         options: activeComparison.options.map(o =>
+            o.id === optId ? { ...o, ratings: { ...o.ratings, [factorId]: val } } : o
+         )
+      });
+   };
 
-      {/* Categorization & Reflection Date */}
-      <div className={cardBase + " p-5 grid md:grid-cols-2 gap-6"}>
-        <div className="space-y-3">
-          <p className={sectionTitle}>Category</p>
-          <div className="flex flex-wrap gap-2">
-            {categoryOptions.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setNewDecision({ ...newDecision, category: cat })}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  newDecision.category === cat
-                    ? "bg-orange-500 text-white"
-                    : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-orange-50 text-orange-800 hover:bg-orange-100"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-          {newDecision.category === "Other" && (
+   const handleAnalyze = () => {
+      setAnalyzing(true);
+      setTimeout(() => {
+         setAnalyzing(false);
+         setShowResults(true);
+         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }, 1500);
+   };
+
+   const cardBase = `rounded-2xl border ${darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-gray-100"} shadow-sm`;
+
+   return (
+      <div className="w-full space-y-8 pb-32 max-w-5xl mx-auto">
+         <div className="flex items-center justify-between">
+            <h1 className={`text-3xl font-black ${darkMode ? "text-white" : "text-gray-900"}`}>Compare Options</h1>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-full animate-pulse">
+               <Zap className="w-4 h-4 fill-current" />
+               <span className="text-[10px] font-black uppercase tracking-widest">AI Ready to Analyze</span>
+            </div>
+         </div>
+
+         {/* Step 1: TITLE */}
+         <div className={cardBase + " p-6"}>
+            <label className="text-[10px] font-black uppercase tracking-tighter text-orange-500 mb-2 block">The Big Question</label>
             <input
-              value={newDecision.customCategory}
-              onChange={(e) => setNewDecision({ ...newDecision, customCategory: e.target.value })}
-              placeholder="Enter custom category..."
-              className={inputBase}
+               value={activeComparison.title}
+               onChange={(e) => setActiveComparison({ ...activeComparison, title: e.target.value })}
+               placeholder="e.g. Which city should I move to?"
+               className={`w-full text-2xl font-bold bg-transparent border-none outline-none ${darkMode ? 'text-white placeholder:text-gray-700' : 'text-gray-900 placeholder:text-gray-200'}`}
             />
-          )}
-        </div>
+         </div>
 
-        <div className="space-y-3">
-          <p className={sectionTitle + " flex items-center gap-2"}>
-             <Calendar className="w-4 h-4" /> Reflection Date
-          </p>
-          <input
-            type="date"
-            value={newDecision.reflectionDate}
-            onChange={(e) => setNewDecision({ ...newDecision, reflectionDate: e.target.value })}
-            className={inputBase}
-          />
-          <p className="text-[10px] text-gray-400">When will you check the outcome of this decision?</p>
-        </div>
-      </div>
+         {/* Step 2 & 3: THE MATRIX */}
+         <div className={cardBase + " overflow-hidden"}>
+            <div className="overflow-x-auto">
+               <table className="w-full border-collapse">
+                  <thead>
+                     <tr className={darkMode ? 'bg-gray-800/50' : 'bg-gray-50'}>
+                        <th className="p-4 text-left border-r border-gray-200 dark:border-gray-700 min-w-[200px]">
+                           <div className="flex items-center justify-between">
+                              <span className="text-xs font-black uppercase tracking-widest text-gray-500">Factors (Weight)</span>
+                              <button onClick={addFactor} className="p-1 hover:bg-orange-500 hover:text-white rounded transition-colors"><Plus className="w-4 h-4" /></button>
+                           </div>
+                        </th>
+                        {activeComparison.options.map((opt, i) => (
+                           <th key={opt.id} className="p-4 min-w-[180px] border-r border-gray-200 dark:border-gray-700 last:border-r-0 group">
+                              <div className="flex items-center justify-between gap-2">
+                                 <input
+                                    value={opt.name}
+                                    onChange={(e) => setActiveComparison({
+                                       ...activeComparison,
+                                       options: activeComparison.options.map(o => o.id === opt.id ? { ...o, name: e.target.value } : o)
+                                    })}
+                                    className="bg-transparent border-none outline-none font-bold text-sm w-full focus:text-orange-500"
+                                 />
+                                 <button onClick={() => removeOption(opt.id)} className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
+                              </div>
+                           </th>
+                        ))}
+                        <th className="p-4 w-[60px]">
+                           <button onClick={addOption} className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center hover:scale-110 transition-transform"><Plus className="w-5 h-5" /></button>
+                        </th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     {activeComparison.factors.map((factor, fi) => (
+                        <tr key={factor.id} className="border-t border-gray-200 dark:border-gray-700 group">
+                           <td className="p-4 border-r border-gray-200 dark:border-gray-700">
+                              <div className="flex items-center justify-between gap-2 mb-2">
+                                 <input
+                                    value={factor.name}
+                                    onChange={(e) => setActiveComparison({
+                                       ...activeComparison,
+                                       factors: activeComparison.factors.map(f => f.id === factor.id ? { ...f, name: e.target.value } : f)
+                                    })}
+                                    className="bg-transparent border-none outline-none text-xs font-semibold w-full"
+                                 />
+                                 <button onClick={() => removeFactor(factor.id)} className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                 <span className="text-[8px] font-bold text-gray-400 uppercase">Weight:</span>
+                                 <div className="flex gap-1">
+                                    {[1, 2, 3, 4, 5].map(w => (
+                                       <button
+                                          key={w}
+                                          onClick={() => setActiveComparison({
+                                             ...activeComparison,
+                                             factors: activeComparison.factors.map(f => f.id === factor.id ? { ...f, weight: w } : f)
+                                          })}
+                                          className={`w-3.5 h-3.5 rounded-sm text-[8px] font-black flex items-center justify-center transition-all ${factor.weight === w ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'}`}
+                                       >
+                                          {w}
+                                       </button>
+                                    ))}
+                                 </div>
+                              </div>
+                           </td>
+                           {activeComparison.options.map(opt => (
+                              <td key={opt.id} className="p-4 border-r border-gray-200 dark:border-gray-700 last:border-r-0 text-center">
+                                 <div className="flex flex-col items-center gap-1">
+                                    <span className={`text-lg font-black ${darkMode ? 'text-white' : 'text-gray-900'}`}>{opt.ratings[factor.id] || 0}</span>
+                                    <input
+                                       type="range" min="0" max="10" step="1"
+                                       value={opt.ratings[factor.id] || 5}
+                                       onChange={(e) => updateRating(opt.id, factor.id, parseInt(e.target.value))}
+                                       className="w-full accent-orange-500"
+                                    />
+                                 </div>
+                              </td>
+                           ))}
+                           <td></td>
+                        </tr>
+                     ))}
+                  </tbody>
+               </table>
+            </div>
+         </div>
 
-      {/* Situation & Goal */}
-      <div className={cardBase + " p-5 space-y-4"}>
-        <div>
-          <p className={sectionTitle}>Situation</p>
-          <p className={darkMode ? "text-gray-400" : "text-gray-500 text-sm"}>
-            Describe the decision you are facing right now.
-          </p>
-          <textarea
-            value={newDecision.situation}
-            onChange={(e) =>
-              setNewDecision({ ...newDecision, situation: e.target.value })
-            }
-            placeholder="E.g. Should I accept a new job offer at a smaller startup?"
-            className={inputBase + " mt-3"}
-            rows={3}
-          />
-        </div>
+         {/* Step 4: ANALYZE */}
+         <div className="flex flex-col items-center gap-6">
+            <button
+               onClick={handleAnalyze}
+               disabled={analyzing}
+               className={`px-12 py-5 bg-black dark:bg-orange-500 text-white rounded-3xl font-black text-xl shadow-2xl hover:scale-105 transition-all flex items-center gap-3 ${analyzing ? 'opacity-70 animate-pulse' : ''}`}
+            >
+               {analyzing ? 'Crunching Decision IQ...' : 'Analyze Decision'}
+               <Zap className="w-6 h-6 fill-current" />
+            </button>
+            <p className="text-xs text-gray-400 max-w-sm text-center">Our algorithm will weight your factors and generate a comparative intelligence report (Step 5).</p>
+         </div>
 
-        <div>
-          <p className={sectionTitle}>Goal</p>
-          <p className={darkMode ? "text-gray-400" : "text-gray-500 text-sm"}>
-            What are you trying to optimize for?
-          </p>
-          <input
-            value={newDecision.intent}
-            onChange={(e) =>
-              setNewDecision({ ...newDecision, intent: e.target.value })
-            }
-            placeholder="E.g. Better work‑life balance, more growth, higher income"
-            className={inputBase + " mt-3"}
-          />
-        </div>
-      </div>
-
-      {/* Decision Toolkits */}
-      <div className={cardBase + " p-5 space-y-4"}>
-        <div className="flex items-center justify-between">
-          <p className={sectionTitle}>Decision Toolkit</p>
-          <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-             {['none', 'proscons', 'swot'].map(f => (
-               <button
-                key={f}
-                onClick={() => setNewDecision({...newDecision, framework: f})}
-                className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
-                  newDecision.framework === f 
-                  ? "bg-white dark:bg-gray-700 text-orange-600 shadow-sm" 
-                  : "text-gray-500"
-                }`}
+         {/* Step 5: RESULTS */}
+         <AnimatePresence>
+            {showResults && (
+               <motion.div
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8 mt-12 pt-12 border-t-2 border-dashed border-gray-200 dark:border-gray-800"
                >
-                 {f === 'none' ? 'General' : f}
-               </button>
-             ))}
-          </div>
-        </div>
+                  <h2 className={`text-4xl font-black text-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>The Intelligence Report</h2>
 
-        {newDecision.framework === "proscons" && (
-          <div className="space-y-4">
-             <div className="grid md:grid-cols-2 gap-4">
-               {/* Pros */}
-               <div className="space-y-2">
-                 <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-green-600 flex items-center gap-1"><Shield className="w-3 h-3" /> PROS</span>
-                    <button onClick={() => addProCon('pro')} className="p-1 rounded-md hover:bg-green-50 text-green-600"><Plus className="w-4 h-4" /></button>
-                 </div>
-                 {newDecision.prosCons.filter(i => i.type === 'pro').map(item => (
-                   <div key={item.id} className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 transition-all">
-                      <input 
-                        value={item.text} 
-                        onChange={(e) => updateProCon(item.id, 'text', e.target.value)}
-                        placeholder="Importance..." 
-                        className={inputBase + " !py-2 !px-3 font-medium"} 
-                      />
-                      <select 
-                        value={item.weight} 
-                        onChange={(e) => updateProCon(item.id, 'weight', parseInt(e.target.value))}
-                        className="bg-green-50 text-green-800 rounded-lg text-xs px-2 py-2 outline-none border-none"
-                      >
-                         {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-                      </select>
-                      <button onClick={() => removeProCon(item.id)} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4"/></button>
-                   </div>
-                 ))}
-               </div>
-               {/* Cons */}
-               <div className="space-y-2">
-                 <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-red-600 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> CONS</span>
-                    <button onClick={() => addProCon('con')} className="p-1 rounded-md hover:bg-red-50 text-red-600"><Plus className="w-4 h-4" /></button>
-                 </div>
-                 {newDecision.prosCons.filter(i => i.type === 'con').map(item => (
-                   <div key={item.id} className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 transition-all">
-                      <input 
-                        value={item.text} 
-                        onChange={(e) => updateProCon(item.id, 'text', e.target.value)}
-                        placeholder="Risk..." 
-                        className={inputBase + " !py-2 !px-3 font-medium"} 
-                      />
-                      <select 
-                        value={item.weight} 
-                        onChange={(e) => updateProCon(item.id, 'weight', parseInt(e.target.value))}
-                        className="bg-red-50 text-red-800 rounded-lg text-xs px-2 py-2 outline-none border-none"
-                      >
-                         {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-                      </select>
-                      <button onClick={() => removeProCon(item.id)} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4"/></button>
-                   </div>
-                 ))}
-               </div>
-             </div>
-          </div>
-        )}
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                     {getResults.map((res, i) => (
+                        <div key={res.id} className={`${cardBase} p-6 relative overflow-hidden group border-2 ${i === 0 ? 'border-green-500 bg-green-50/5' : 'border-transparent'}`}>
+                           {i === 0 && (
+                              <div className="absolute top-0 right-0 p-2 bg-green-500 text-white rounded-bl-xl text-[10px] font-black uppercase">🔥 Best Choice</div>
+                           )}
+                           <span className="text-xs font-bold text-gray-400">Rank #{i + 1}</span>
+                           <h4 className="text-xl font-black mb-4 group-hover:text-orange-500 transition-colors uppercase truncate">{res.name}</h4>
+                           <div className="flex items-end gap-1">
+                              <span className="text-5xl font-black">{res.score}</span>
+                              <span className="text-xl font-bold text-gray-400 mb-1">/100</span>
+                           </div>
+                           <div className="mt-4 w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                              <motion.div
+                                 initial={{ width: 0 }}
+                                 animate={{ width: `${res.score}%` }}
+                                 className={`h-full ${i === 0 ? 'bg-green-500' : 'bg-orange-500'}`}
+                              />
+                           </div>
+                        </div>
+                     ))}
+                  </div>
 
-        {newDecision.framework === "swot" && (
-          <div className="grid grid-cols-2 gap-3 p-2 bg-gray-50 dark:bg-gray-800/40 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
-             <SwotTile 
-              label="Strengths" color="green" 
-              value={newDecision.swot.s} 
-              onChange={(val) => setNewDecision({...newDecision, swot: {...newDecision.swot, s: val}})} 
-              darkMode={darkMode}
-            />
-             <SwotTile 
-              label="Weaknesses" color="red" 
-              value={newDecision.swot.w} 
-              onChange={(val) => setNewDecision({...newDecision, swot: {...newDecision.swot, w: val}})} 
-              darkMode={darkMode}
-            />
-             <SwotTile 
-              label="Opportunities" color="blue" 
-              value={newDecision.swot.o} 
-              onChange={(val) => setNewDecision({...newDecision, swot: {...newDecision.swot, o: val}})} 
-              darkMode={darkMode}
-            />
-             <SwotTile 
-              label="Threats" color="orange" 
-              value={newDecision.swot.t} 
-              onChange={(val) => setNewDecision({...newDecision, swot: {...newDecision.swot, t: val}})} 
-              darkMode={darkMode}
-            />
-          </div>
-        )}
+                  {/* CHARTS SECTION */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                     <div className={cardBase + " p-6"}>
+                        <div className="flex items-center gap-2 mb-4">
+                           <BarChart3 className="w-5 h-5 text-orange-500" />
+                           <h4 className="font-bold text-sm uppercase tracking-widest">Score Comparison</h4>
+                        </div>
+                        <ComparisonBarChart data={getResults} darkMode={darkMode} />
+                     </div>
+                     <div className={cardBase + " p-6"}>
+                        <div className="flex items-center gap-2 mb-4">
+                           <Radar className="w-5 h-5 text-green-500" />
+                           <h4 className="font-bold text-sm uppercase tracking-widest">Factor breakdown (Top 2)</h4>
+                        </div>
+                        <FactorRadarChart factors={activeComparison.factors} options={getResults} darkMode={darkMode} />
+                     </div>
+                  </div>
+
+                  {/* AI INSIGHTS GRID */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                     <InsightCard
+                        icon={Shield} title="Hidden Risks" color="red"
+                        content={getResults[0].ratings[activeComparison.factors.find(f => f.weight >= 4)?.id] < 5
+                           ? `Caution: Your top pick "${getResults[0].name}" has a low rating in a high-priority factor (${activeComparison.factors.find(f => f.weight >= 4)?.name}). This might lead to long-term frustration.`
+                           : "No major trade-off risks detected in high-weight categories. Your top pick is well-balanced."}
+                     />
+                     <InsightCard
+                        icon={Target} title="Regret Analysis" color="purple"
+                        content={activeComparison.factors.length < 3
+                           ? "Limited data. We recommend adding more factors (like long-term happiness or financial impact) to minimize eventual regret."
+                           : `Based on your weights, "${getResults[0].name}" offers the highest utility. If you choose "${getResults[1]?.name || 'any other'}", you're trading off ${getResults[0].score - (getResults[1]?.score || 0)}% of perceived value.`}
+                     />
+                  </div>
+
+                  <div className="flex justify-center pt-8">
+                     <button onClick={saveDecision} className="px-10 py-5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-3xl font-black shadow-2xl hover:scale-105 transition-all flex items-center gap-3">
+                        Finalize & Save to Vault
+                        <ChevronRight className="w-6 h-6" />
+                     </button>
+                  </div>
+               </motion.div>
+            )}
+         </AnimatePresence>
       </div>
-
-      {/* Constraints & Context */}
-      <div className={cardBase + " p-5 space-y-5"}>
-        <p className={sectionTitle}>Constraints &amp; Context</p>
-
-        {/* Time Pressure */}
-        <div className="space-y-2">
-          <span className={labelBase}>Time Pressure</span>
-          <div className="flex flex-wrap gap-3">
-            {constraintOptions.time.map((opt) => (
-              <PillOption
-                key={opt.value}
-                label={opt.label}
-                icon={opt.icon}
-                active={newDecision.timePressure === opt.value}
-                onClick={() =>
-                  setNewDecision({ ...newDecision, timePressure: opt.value })
-                }
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Risk Level */}
-        <div className="space-y-2">
-          <span className={labelBase}>Risk Level</span>
-          <div className="flex flex-wrap gap-3">
-            {constraintOptions.risk.map((opt) => (
-              <PillOption
-                key={opt.value}
-                label={opt.label}
-                icon={opt.icon}
-                active={newDecision.riskLevel === opt.value}
-                onClick={() =>
-                  setNewDecision({ ...newDecision, riskLevel: opt.value })
-                }
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Emotional State */}
-        <div className="space-y-2">
-          <span className={labelBase}>Emotional State</span>
-          <div className="flex flex-wrap gap-3">
-            {constraintOptions.emotion.map((opt) => (
-              <PillOption
-                key={opt.value}
-                label={opt.label}
-                icon={opt.icon}
-                active={newDecision.emotion === opt.value}
-                onClick={() =>
-                  setNewDecision({ ...newDecision, emotion: opt.value })
-                }
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Alternatives */}
-      <div className={cardBase + " p-5 space-y-4"}>
-        <p className={sectionTitle}>Alternatives Considered</p>
-        <input
-          value={newDecision.alternatives || ""}
-          onChange={(e) =>
-            setNewDecision({ ...newDecision, alternatives: e.target.value })
-          }
-          placeholder="Option 1, Option 2, Option 3..."
-          className={inputBase}
-        />
-      </div>
-
-      {/* Final Decision & Reasoning */}
-      <div className={cardBase + " p-5 space-y-4 mb-4"}>
-        <div>
-          <p className={sectionTitle}>Final Decision</p>
-          <input
-            value={newDecision.decision}
-            onChange={(e) =>
-              setNewDecision({ ...newDecision, decision: e.target.value })
-            }
-            placeholder="What did you decide to do?"
-            className={inputBase + " mt-2"}
-          />
-        </div>
-
-        <div>
-          <p className={sectionTitle}>Reasoning</p>
-          <p className={darkMode ? "text-gray-400" : "text-gray-500 text-sm"}>
-            Why does this option feel right given your constraints?
-          </p>
-          <textarea
-            value={newDecision.reasoning}
-            onChange={(e) =>
-              setNewDecision({ ...newDecision, reasoning: e.target.value })
-            }
-            placeholder="Summarize how you weighed trade‑offs and why you prefer this path."
-            className={inputBase + " mt-2"}
-            rows={3}
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-center flex-col items-center gap-4">
-        <button
-          onClick={saveDecision}
-          className="px-10 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-2xl font-bold shadow-lg hover:shadow-orange-200 dark:hover:shadow-none hover:-translate-y-0.5 transition-all text-lg flex items-center gap-2"
-        >
-          <Target className="w-5 h-5" /> Save Decision IQ
-        </button>
-        <p className="text-xs text-gray-400">Your decision will be encrypted and saved to your personal vault.</p>
-      </div>
-    </div>
-  )
+   )
 }
 
-function PillOption({ label, icon, active, onClick }) {
-  const base =
-    "px-4 py-2 rounded-full text-sm font-medium inline-flex items-center justify-center cursor-pointer transition-all"
-  const activeClasses = "bg-orange-500 text-white shadow-sm"
-  const inactiveClasses = "bg-orange-50 text-orange-800 hover:bg-orange-100"
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`${base} ${active ? activeClasses : inactiveClasses}`}
-    >
-      <span className="mr-2">{icon}</span>
-      {label}
-    </button>
-  )
-}
-
-function SwotTile({ label, color, value, onChange, darkMode }) {
-  const colors = {
-    green: "text-green-600 bg-green-50",
-    red: "text-red-600 bg-red-50",
-    blue: "text-blue-600 bg-blue-50",
-    orange: "text-orange-600 bg-orange-50"
-  }
-  return (
-    <div className={`p-3 rounded-xl ${darkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-100'} shadow-sm`}>
-       <p className={`text-[10px] font-black uppercase tracking-tighter mb-2 ${colors[color]} px-2 py-0.5 rounded-md w-fit`}>{label}</p>
-       <textarea 
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={`Add ${label.toLowerCase()}...`}
-          className="w-full bg-transparent border-none outline-none text-xs resize-none"
-          rows={3}
-       />
-    </div>
-  )
+function InsightCard({ icon: Icon, title, content, color }) {
+   const colors = {
+      red: 'text-red-500 bg-red-50 dark:bg-red-900/10',
+      green: 'text-green-500 bg-green-50 dark:bg-green-900/10',
+      purple: 'text-purple-500 bg-purple-50 dark:bg-purple-900/10',
+      orange: 'text-orange-500 bg-orange-50 dark:bg-orange-900/10',
+   }
+   return (
+      <div className={`p-6 rounded-3xl border border-gray-100 dark:border-gray-800 flex gap-4 ${colors[color]}`}>
+         <div className="p-3 rounded-2xl bg-white dark:bg-gray-900 shadow-sm h-fit">
+            <Icon className="w-6 h-6" />
+         </div>
+         <div>
+            <h4 className="font-black uppercase tracking-widest text-[10px] mb-1">{title}</h4>
+            <p className="text-sm font-medium leading-relaxed opacity-80">{content}</p>
+         </div>
+      </div>
+   )
 }
