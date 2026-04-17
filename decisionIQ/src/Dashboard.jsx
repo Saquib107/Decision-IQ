@@ -14,6 +14,7 @@ import {
   Menu,
   X,
 } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import HomeSection from "./dashboard/HomeSection"
 import LogDecisionSection from "./dashboard/LogDecisionSection"
 import HistorySection from "./dashboard/HistorySection"
@@ -211,48 +212,82 @@ export default function Dashboard({
       )}
 
       {/* MAIN CONTENT */}
-      <main className="p-4 md:p-8 w-full">
-        {activeSection === "home" && (
-          <HomeSection
-            darkMode={darkMode}
-            decisions={decisions}
-            successRate={successRate}
-            showToast={showToast}
-          />
-        )}
+      <main className="p-4 md:p-8 w-full max-w-7xl mx-auto">
+        <AnimatePresence mode="wait">
+          {activeSection === "home" && (
+            <motion.div
+              key="home"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <HomeSection
+                darkMode={darkMode}
+                decisions={decisions}
+                successRate={successRate}
+                showToast={showToast}
+              />
+            </motion.div>
+          )}
 
-        {activeSection === "log" && (
-          <LogDecisionSection
-            darkMode={darkMode}
-            newDecision={newDecision}
-            setNewDecision={setNewDecision}
-            saveDecision={saveDecision}
-          />
-        )}
+          {activeSection === "log" && (
+            <motion.div
+              key="log"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
+              <LogDecisionSection
+                darkMode={darkMode}
+                newDecision={newDecision}
+                setNewDecision={setNewDecision}
+                saveDecision={saveDecision}
+              />
+            </motion.div>
+          )}
 
-        {activeSection === "history" && (
-          <HistorySection
-            darkMode={darkMode}
-            SearchIcon={Search}
-            TrashIcon={Trash2}
-            decisions={decisions}
-            filteredDecisions={filteredDecisions}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            deleteDecision={deleteDecision}
-            successRate={successRate}
-          />
-        )}
+          {activeSection === "history" && (
+            <motion.div
+              key="history"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <HistorySection
+                darkMode={darkMode}
+                SearchIcon={Search}
+                TrashIcon={Trash2}
+                decisions={decisions}
+                filteredDecisions={filteredDecisions}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                deleteDecision={deleteDecision}
+                successRate={successRate}
+              />
+            </motion.div>
+          )}
 
-        {activeSection === "outcomes" && (
-          <OutcomesSection
-            darkMode={darkMode}
-            decisions={decisions}
-            editingOutcome={editingOutcome}
-            setEditingOutcome={setEditingOutcome}
-            updateOutcome={updateOutcome}
-          />
-        )}
+          {activeSection === "outcomes" && (
+            <motion.div
+              key="outcomes"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <OutcomesSection
+                darkMode={darkMode}
+                decisions={decisions}
+                editingOutcome={editingOutcome}
+                setEditingOutcome={setEditingOutcome}
+                updateOutcome={updateOutcome}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* PROFILE SIDEBAR OVERLAY */}

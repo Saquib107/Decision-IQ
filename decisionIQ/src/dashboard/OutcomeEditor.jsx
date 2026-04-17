@@ -104,9 +104,22 @@ export default function OutcomeEditor({ decision, onSave, onCancel, darkMode }) 
             onChange={(e) =>
               setOutcome({ ...outcome, notes: e.target.value })
             }
-            placeholder="How did it turn out? What did you learn?"
+            placeholder="How did it turn out?"
             className={`w-full px-4 py-3 rounded-xl ${inputBase}`}
-            rows="3"
+            rows="2"
+          />
+        </div>
+
+        <div>
+          <label className={labelBase}>Lessons Learned (Final Insight)</label>
+          <textarea
+            value={outcome.lessonsLearned || ""}
+            onChange={(e) =>
+              setOutcome({ ...outcome, lessonsLearned: e.target.value })
+            }
+            placeholder="What's the one thing you'll do differently next time?"
+            className={`w-full px-4 py-3 rounded-xl ${inputBase}`}
+            rows="2"
           />
         </div>
 

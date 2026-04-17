@@ -68,7 +68,7 @@ STATIC_URL = "static/"
 
 # CORS
 CORS_ALLOWED_ORIGINS = [
-    "https://decision-iq-three.vercel.app/",
+    "https://decision-iq-three.vercel.app",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

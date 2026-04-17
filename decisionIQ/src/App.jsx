@@ -4,6 +4,7 @@ import Dashboard from "./Dashboard"
 import Toast from "./Toast"
 import LandingPage from "./LandingPage"
 import AuthPage from "./AuthPage"
+import confetti from "canvas-confetti"
 
 // Use Vite environment variable for API host
 const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -34,14 +35,22 @@ export default function DecisionJournalApp() {
   const [user, setUser] = useState(null)
 
   const [decisions, setDecisions] = useState([])
-  const [newDecision, setNewDecision] = useState({
+  const getInitialDecision = () => ({
     situation: "",
     intent: "",
     constraints: "",
     alternatives: "",
     decision: "",
     reasoning: "",
-  })
+    category: "Personal",
+    customCategory: "",
+    prosCons: [],
+    swot: { s: "", w: "", o: "", t: "" },
+    reflectionDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    framework: "none",
+  });
+
+  const [newDecision, setNewDecision] = useState(getInitialDecision())
   const [searchQuery, setSearchQuery] = useState("")
   const [editingOutcome, setEditingOutcome] = useState(null)
 
@@ -199,14 +208,7 @@ export default function DecisionJournalApp() {
       }
       const created = JSON.parse(text)
       setDecisions((prev) => [created, ...prev])
-      setNewDecision({
-        situation: "",
-        intent: "",
-        constraints: "",
-        alternatives: "",
-        decision: "",
-        reasoning: "",
-      })
+      setNewDecision(getInitialDecision())
       showToast("Decision saved successfully!")
       setCurrentPage("dashboard")
     } catch (err) {
@@ -232,6 +234,15 @@ export default function DecisionJournalApp() {
       setDecisions((prev) => prev.map((d) => (d.id === id ? updated : d)))
       setEditingOutcome(null)
       showToast("Outcome updated successfully!")
+      
+      if (outcome.success) {
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#f97316', '#fbbf24', '#ffffff']
+        });
+      }
     } catch (err) {
       console.error("Update outcome error", err)
       showToast("Failed to update outcome", "error")

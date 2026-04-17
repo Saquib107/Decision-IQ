@@ -1,6 +1,7 @@
 // src/dashboard/HomeSection.jsx
 import React, { useState } from "react"
 import { Clock, Award, TrendingUp } from "lucide-react"
+import { SuccessTrendChart, CategoryPieChart } from "./AnalyticsCharts"
 
 export default function HomeSection({
   darkMode,
@@ -74,8 +75,29 @@ export default function HomeSection({
         </button>
       </div>
 
+      {/* Charts Section */}
+      <div className="grid md:grid-cols-2 gap-6 mt-8">
+        <div className={`p-6 rounded-2xl ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className={`font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>Success IQ Trend</h3>
+            <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-md font-bold uppercase">Learning Curve</span>
+          </div>
+          <p className="text-xs text-gray-400 mb-4">Your decision success rate progression based on logged outcomes.</p>
+          <SuccessTrendChart decisions={decisions} darkMode={darkMode} />
+        </div>
+
+        <div className={`p-6 rounded-2xl ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className={`font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>Category Breakdown</h3>
+            <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-md font-bold uppercase">Life Areas</span>
+          </div>
+          <p className="text-xs text-gray-400 mb-4">Distribution of your decisions across different life domains.</p>
+          <CategoryPieChart decisions={decisions} darkMode={darkMode} />
+        </div>
+      </div>
+
       {/* Stats cards */}
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 gap-6 mt-8">
         <StatCard
           darkMode={darkMode}
           color="orange"

@@ -1,5 +1,6 @@
 // src/dashboard/LogDecisionSection.jsx
-import React from "react"
+import React, { useState } from "react"
+import { Plus, Trash2, Shield, AlertTriangle, Scale, Target, Calendar } from "lucide-react"
 
 const constraintOptions = {
   time: [
@@ -19,6 +20,8 @@ const constraintOptions = {
     { value: "excited", label: "Excited", icon: "😊" },
   ],
 }
+
+const categoryOptions = ["Career", "Health", "Finance", "Social", "Personal", "Other"]
 
 export default function LogDecisionSection({
   darkMode,
@@ -42,8 +45,29 @@ export default function LogDecisionSection({
     darkMode ? "bg-gray-900 text-white" : "bg-orange-50"
   } border border-transparent focus:border-orange-400 outline-none text-sm`
 
+  const addProCon = (type) => {
+    const fresh = { id: Date.now(), text: "", weight: 3, type }
+    setNewDecision({ ...newDecision, prosCons: [...newDecision.prosCons, fresh] })
+  }
+
+  const updateProCon = (id, field, value) => {
+    setNewDecision({
+      ...newDecision,
+      prosCons: newDecision.prosCons.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      ),
+    })
+  }
+
+  const removeProCon = (id) => {
+    setNewDecision({
+      ...newDecision,
+      prosCons: newDecision.prosCons.filter((item) => item.id !== id),
+    })
+  }
+
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 pb-20">
       <h1
         className={`text-2xl font-bold mb-2 ${
           darkMode ? "text-gray-100" : "text-gray-900"
@@ -51,6 +75,49 @@ export default function LogDecisionSection({
       >
         Log Decision
       </h1>
+
+      {/* Categorization & Reflection Date */}
+      <div className={cardBase + " p-5 grid md:grid-cols-2 gap-6"}>
+        <div className="space-y-3">
+          <p className={sectionTitle}>Category</p>
+          <div className="flex flex-wrap gap-2">
+            {categoryOptions.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setNewDecision({ ...newDecision, category: cat })}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  newDecision.category === cat
+                    ? "bg-orange-500 text-white"
+                    : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-orange-50 text-orange-800 hover:bg-orange-100"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          {newDecision.category === "Other" && (
+            <input
+              value={newDecision.customCategory}
+              onChange={(e) => setNewDecision({ ...newDecision, customCategory: e.target.value })}
+              placeholder="Enter custom category..."
+              className={inputBase}
+            />
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <p className={sectionTitle + " flex items-center gap-2"}>
+             <Calendar className="w-4 h-4" /> Reflection Date
+          </p>
+          <input
+            type="date"
+            value={newDecision.reflectionDate}
+            onChange={(e) => setNewDecision({ ...newDecision, reflectionDate: e.target.value })}
+            className={inputBase}
+          />
+          <p className="text-[10px] text-gray-400">When will you check the outcome of this decision?</p>
+        </div>
+      </div>
 
       {/* Situation & Goal */}
       <div className={cardBase + " p-5 space-y-4"}>
@@ -84,6 +151,114 @@ export default function LogDecisionSection({
             className={inputBase + " mt-3"}
           />
         </div>
+      </div>
+
+      {/* Decision Toolkits */}
+      <div className={cardBase + " p-5 space-y-4"}>
+        <div className="flex items-center justify-between">
+          <p className={sectionTitle}>Decision Toolkit</p>
+          <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+             {['none', 'proscons', 'swot'].map(f => (
+               <button
+                key={f}
+                onClick={() => setNewDecision({...newDecision, framework: f})}
+                className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  newDecision.framework === f 
+                  ? "bg-white dark:bg-gray-700 text-orange-600 shadow-sm" 
+                  : "text-gray-500"
+                }`}
+               >
+                 {f === 'none' ? 'General' : f}
+               </button>
+             ))}
+          </div>
+        </div>
+
+        {newDecision.framework === "proscons" && (
+          <div className="space-y-4">
+             <div className="grid md:grid-cols-2 gap-4">
+               {/* Pros */}
+               <div className="space-y-2">
+                 <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-green-600 flex items-center gap-1"><Shield className="w-3 h-3" /> PROS</span>
+                    <button onClick={() => addProCon('pro')} className="p-1 rounded-md hover:bg-green-50 text-green-600"><Plus className="w-4 h-4" /></button>
+                 </div>
+                 {newDecision.prosCons.filter(i => i.type === 'pro').map(item => (
+                   <div key={item.id} className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 transition-all">
+                      <input 
+                        value={item.text} 
+                        onChange={(e) => updateProCon(item.id, 'text', e.target.value)}
+                        placeholder="Importance..." 
+                        className={inputBase + " !py-2 !px-3 font-medium"} 
+                      />
+                      <select 
+                        value={item.weight} 
+                        onChange={(e) => updateProCon(item.id, 'weight', parseInt(e.target.value))}
+                        className="bg-green-50 text-green-800 rounded-lg text-xs px-2 py-2 outline-none border-none"
+                      >
+                         {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                      <button onClick={() => removeProCon(item.id)} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4"/></button>
+                   </div>
+                 ))}
+               </div>
+               {/* Cons */}
+               <div className="space-y-2">
+                 <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-red-600 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> CONS</span>
+                    <button onClick={() => addProCon('con')} className="p-1 rounded-md hover:bg-red-50 text-red-600"><Plus className="w-4 h-4" /></button>
+                 </div>
+                 {newDecision.prosCons.filter(i => i.type === 'con').map(item => (
+                   <div key={item.id} className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 transition-all">
+                      <input 
+                        value={item.text} 
+                        onChange={(e) => updateProCon(item.id, 'text', e.target.value)}
+                        placeholder="Risk..." 
+                        className={inputBase + " !py-2 !px-3 font-medium"} 
+                      />
+                      <select 
+                        value={item.weight} 
+                        onChange={(e) => updateProCon(item.id, 'weight', parseInt(e.target.value))}
+                        className="bg-red-50 text-red-800 rounded-lg text-xs px-2 py-2 outline-none border-none"
+                      >
+                         {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                      <button onClick={() => removeProCon(item.id)} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4"/></button>
+                   </div>
+                 ))}
+               </div>
+             </div>
+          </div>
+        )}
+
+        {newDecision.framework === "swot" && (
+          <div className="grid grid-cols-2 gap-3 p-2 bg-gray-50 dark:bg-gray-800/40 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+             <SwotTile 
+              label="Strengths" color="green" 
+              value={newDecision.swot.s} 
+              onChange={(val) => setNewDecision({...newDecision, swot: {...newDecision.swot, s: val}})} 
+              darkMode={darkMode}
+            />
+             <SwotTile 
+              label="Weaknesses" color="red" 
+              value={newDecision.swot.w} 
+              onChange={(val) => setNewDecision({...newDecision, swot: {...newDecision.swot, w: val}})} 
+              darkMode={darkMode}
+            />
+             <SwotTile 
+              label="Opportunities" color="blue" 
+              value={newDecision.swot.o} 
+              onChange={(val) => setNewDecision({...newDecision, swot: {...newDecision.swot, o: val}})} 
+              darkMode={darkMode}
+            />
+             <SwotTile 
+              label="Threats" color="orange" 
+              value={newDecision.swot.t} 
+              onChange={(val) => setNewDecision({...newDecision, swot: {...newDecision.swot, t: val}})} 
+              darkMode={darkMode}
+            />
+          </div>
+        )}
       </div>
 
       {/* Constraints & Context */}
@@ -189,13 +364,14 @@ export default function LogDecisionSection({
         </div>
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center flex-col items-center gap-4">
         <button
           onClick={saveDecision}
-          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+          className="px-10 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-2xl font-bold shadow-lg hover:shadow-orange-200 dark:hover:shadow-none hover:-translate-y-0.5 transition-all text-lg flex items-center gap-2"
         >
-          Save Decision
+          <Target className="w-5 h-5" /> Save Decision IQ
         </button>
+        <p className="text-xs text-gray-400">Your decision will be encrypted and saved to your personal vault.</p>
       </div>
     </div>
   )
@@ -216,5 +392,26 @@ function PillOption({ label, icon, active, onClick }) {
       <span className="mr-2">{icon}</span>
       {label}
     </button>
+  )
+}
+
+function SwotTile({ label, color, value, onChange, darkMode }) {
+  const colors = {
+    green: "text-green-600 bg-green-50",
+    red: "text-red-600 bg-red-50",
+    blue: "text-blue-600 bg-blue-50",
+    orange: "text-orange-600 bg-orange-50"
+  }
+  return (
+    <div className={`p-3 rounded-xl ${darkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-100'} shadow-sm`}>
+       <p className={`text-[10px] font-black uppercase tracking-tighter mb-2 ${colors[color]} px-2 py-0.5 rounded-md w-fit`}>{label}</p>
+       <textarea 
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={`Add ${label.toLowerCase()}...`}
+          className="w-full bg-transparent border-none outline-none text-xs resize-none"
+          rows={3}
+       />
+    </div>
   )
 }
