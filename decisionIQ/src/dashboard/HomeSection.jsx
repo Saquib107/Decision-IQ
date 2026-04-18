@@ -34,9 +34,8 @@ export default function HomeSection({
   return (
     <div className="pb-10">
       <h1
-        className={`text-3xl font-bold mb-2 ${
-          darkMode ? "text-white" : "text-gray-900"
-        }`}
+        className={`text-3xl font-bold mb-2 ${darkMode ? "text-white" : "text-gray-900"
+          }`}
       >
         Welcome to Your Decision Intelligence Hub
       </h1>
@@ -46,86 +45,53 @@ export default function HomeSection({
 
       {/* Quick Start Section */}
       <div className="mt-8 grid md:grid-cols-2 gap-4">
-        <button 
-           onClick={onStartBlank}
-           className={`p-6 rounded-2xl border-2 border-dashed ${darkMode ? 'border-gray-700 hover:border-orange-500 bg-gray-800/50' : 'border-orange-200 hover:border-orange-500 bg-orange-50/30'} transition-all flex items-center justify-between group`}
+        <button
+          onClick={onStartBlank}
+          className={`p-6 rounded-2xl border-2 border-dashed ${darkMode ? 'border-gray-700 hover:border-orange-500 bg-gray-800/50' : 'border-orange-200 hover:border-orange-500 bg-orange-50/30'} transition-all flex items-center justify-between group`}
         >
-           <div className="text-left">
-              <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Start Blank Decision</h3>
-              <p className="text-sm text-gray-400">Build your own comparison matrix from scratch.</p>
-           </div>
-           <div className={`w-12 h-12 rounded-xl bg-orange-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform`}>
-              <TrendingUp className="w-6 h-6" />
-           </div>
+          <div className="text-left">
+            <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Start Blank Decision</h3>
+            <p className="text-sm text-gray-400">Build your own comparison matrix from scratch.</p>
+          </div>
+          <div className={`w-12 h-12 rounded-xl bg-orange-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform`}>
+            <TrendingUp className="w-6 h-6" />
+          </div>
         </button>
         <div className={`p-6 rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg border border-transparent`}>
-           <h3 className={`text-lg font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>AI Ready to Analyze</h3>
-           <p className="text-sm text-gray-400">Fill in the data and a 1-click analysis will appear.</p>
-           <div className="mt-2 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-green-500">System Standing By</span>
-           </div>
+          <h3 className={`text-lg font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>AI Ready to Analyze</h3>
+          <p className="text-sm text-gray-400">Fill in the data and a 1-click analysis will appear.</p>
+          <div className="mt-2 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-green-500">System Standing By</span>
+          </div>
         </div>
       </div>
 
       {/* Templates Section */}
       <div className="mt-8">
-         <div className="flex items-center justify-between mb-4">
-            <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Decision Templates</h2>
-            <span className="text-xs text-orange-500 font-bold uppercase tracking-widest px-2 py-1 bg-orange-50 dark:bg-orange-900/20 rounded">Speed Utility</span>
-         </div>
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {templates.map((tpl) => (
-               <motion.button
-                  key={tpl.id}
-                  whileHover={{ y: -5 }}
-                  onClick={() => onUseTemplate(tpl)}
-                  className={`p-4 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md border ${darkMode ? 'border-gray-700' : 'border-gray-100'} text-left group`}
-               >
-                  <div className={`text-3xl mb-3`}>{tpl.icon}</div>
-                  <h4 className={`font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{tpl.title}</h4>
-                  <div className="flex items-center justify-between mt-4">
-                     <span className="text-[10px] font-bold text-gray-400 uppercase">{tpl.factors.length} Factors Included</span>
-                     <div className="p-1 px-2 rounded-lg bg-orange-50 dark:bg-gray-700 text-orange-600 text-[10px] font-black group-hover:bg-orange-500 group-hover:text-white transition-colors">USE</div>
-                  </div>
-               </motion.button>
-            ))}
-         </div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Decision Templates</h2>
+          <span className="text-xs text-orange-500 font-bold uppercase tracking-widest px-2 py-1 bg-orange-50 dark:bg-orange-900/20 rounded">Speed Utility</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {templates.map((tpl) => (
+            <motion.button
+              key={tpl.id}
+              whileHover={{ y: -5 }}
+              onClick={() => onUseTemplate(tpl)}
+              className={`p-4 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md border ${darkMode ? 'border-gray-700' : 'border-gray-100'} text-left group`}
+            >
+              <div className={`text-3xl mb-3`}>{tpl.icon}</div>
+              <h4 className={`font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{tpl.title}</h4>
+              <div className="flex items-center justify-between mt-4">
+                <span className="text-[10px] font-bold text-gray-400 uppercase">{tpl.factors.length} Factors Included</span>
+                <div className="p-1 px-2 rounded-lg bg-orange-50 dark:bg-gray-700 text-orange-600 text-[10px] font-black group-hover:bg-orange-500 group-hover:text-white transition-colors">USE</div>
+              </div>
+            </motion.button>
+          ))}
+        </div>
       </div>
 
-      {/* AI Assistant card */}
-      <div
-        className={`mt-10 p-8 rounded-2xl ${
-          darkMode ? "bg-gray-800" : "bg-white"
-        } shadow-lg mb-6`}
-      >
-        <h2
-          className={`text-xl font-semibold mb-4 ${
-            darkMode ? "text-white" : "text-gray-900"
-          }`}
-        >
-          AI Decision Assistant
-        </h2>
-        <p className={darkMode ? "text-gray-400" : "text-gray-600"}>
-          Share your current dilemma and get AI-powered insights based on your
-          decision history.
-        </p>
-        <textarea
-          value={aiPrompt}
-          onChange={(e) => setAiPrompt(e.target.value)}
-          placeholder="What decision are you facing today?"
-          className={`mt-4 w-full px-4 py-3 rounded-xl ${
-            darkMode ? "bg-gray-700 text-white" : "bg-gray-100"
-          } border-2 border-transparent focus:border-orange-500 outline-none`}
-          rows="4"
-        />
-        <button
-          onClick={generateAIResponse}
-          className="mt-4 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-        >
-          Get AI Suggestion
-        </button>
-      </div>
 
       {/* Charts Section */}
       <div className="grid md:grid-cols-2 gap-6 mt-8">
